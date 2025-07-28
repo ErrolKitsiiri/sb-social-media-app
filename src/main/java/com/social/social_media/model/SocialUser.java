@@ -1,13 +1,16 @@
 package com.social.social_media.model;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SocialUser {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -16,14 +19,30 @@ public class SocialUser {
 
     //foreign key pointing to the id in the social_profile table
     //owner of the relationship
-    @OneToOne(mappedBy = "user")
+//    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL)
+    @OneToOne(mappedBy = "user", cascade = {CascadeType.REMOVE,CascadeType.PERSIST, CascadeType.MERGE})
     private SocialProfile socialProfile;
 
     //owner of the relationship
-    @OneToMany(mappedBy = "socialUser")
+    @OneToMany(mappedBy = "socialUser", cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     private List<Post> posts = new ArrayList<>();
 
     //using set because we want a unique set of users i.e a user can join one unique group
-    @ManyToMany
-    private Set<Group> groups = new HashSet<>();
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+            name = "user_group",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "group_id")
+    )
+    private Set<SocialGroup> groups = new HashSet<>();
+
+    @Override
+    public int hashCode(){
+        return Objects.hash(id);
+    }
+
+    public void setSocialProfile(SocialProfile socialProfile){
+        socialProfile.setUser(this);
+        this.socialProfile = socialProfile;
+    }
 }

@@ -1,9 +1,16 @@
 package com.social.social_media.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class SocialProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,13 +21,16 @@ public class SocialProfile {
     //but this class is the owner of the relationship
     @OneToOne
     @JoinColumn(name = "social_user")
+    @JsonIgnore
     private SocialUser user;
 
-    public Long getId() {
-        return id;
+    private String description;
+
+    public void setSocialUser(SocialUser socialUser){
+        this.user = socialUser;
+        if(user.getSocialProfile() != this){
+            user.setSocialProfile(this);
+        }
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
 }
